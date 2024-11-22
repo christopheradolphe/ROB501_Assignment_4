@@ -41,10 +41,11 @@ def ibvs_controller(K, pts_des, pts_obs, zs, gain):
     J_pseudo = np.linalg.pinv(J)
 
     # Compute error of image points
-    error = (pts_des - pts_obs).reshape(-1,1)
+    error = (pts_des - pts_obs).reshape(-1, order='F')
     
     # Compute velocity using Corke 2023 (Equation 15.14)
     v = gain * J_pseudo @ error
+    v = v.reshape(6,1)
 
     correct = isinstance(v, np.ndarray) and \
         v.dtype == np.float64 and v.shape == (6, 1)
