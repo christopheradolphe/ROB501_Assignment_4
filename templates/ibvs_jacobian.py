@@ -35,7 +35,7 @@ def ibvs_jacobian(K, pt, z):
     # Initialize Jacobian to be all zeros
     J = np.zeros((2,6))
 
-    # Populate Jacobian with non-zero values as per 2023 Corke Text (Equation 15.6)
+    # Populate Jacobian with non-zero values as per 2023 Corke Text (Equation 15.9)
     J[0,0] = -f/z
     J[0,2] = u_bar/z
     J[0,3] = u_bar*v_bar / f
