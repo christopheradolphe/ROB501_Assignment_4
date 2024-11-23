@@ -35,12 +35,13 @@ def ibvs_depth_finder(K, pts_obs, pts_prev, v_cam):
     v = v_cam[0:3]
     w = v_cam[3:]
 
+    # Loop through each image plane point
     for i in range(n):
         # Calculate pixel coordiantes relative to principal point
         u_bar = pts_obs[0,i] - cx
         v_bar = pts_obs[1,i] - cy
 
-        # Compute Jacobian for each image plane point
+        # Compute Jacobians for each image plane point
         J_t = np.array([
             [-f, 0, u_bar],
             [0, -f, v_bar]
@@ -61,10 +62,10 @@ def ibvs_depth_finder(K, pts_obs, pts_prev, v_cam):
         b = optical_flow - J_w @ w
         b = b.reshape(2,1)
 
-        # Solve for theta using linear lease squares
+        # Solve for theta using linear least squares
         theta = np.linalg.lstsq(A,b,rcond=None)[0]
 
-        # Z estimate is inverse of thetas
+        # Z estimate is inverse of theta
         zs_est[i] = 1/theta
 
 

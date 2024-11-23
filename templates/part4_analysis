@@ -1,0 +1,63 @@
+import numpy as np
+from ibvs_controller import ibvs_controller
+from ibvs_simulation import ibvs_simulation
+from dcm_from_rpy import dcm_from_rpy
+import matplotlib.pyplot as plt
+
+# Camera intrinsics matrix - known.
+K = np.array([[500.0, 0, 400.0], 
+              [0, 500.0, 300.0], 
+              [0,     0,     1]])
+
+# Target points (in target/object frame).
+pts = np.array([[-0.75,  0.75, -0.75,  0.75],
+                [-0.50, -0.50,  0.50,  0.50],
+                [ 0.00,  0.00,  0.00,  0.00]])
+
+# Camera poses, last and first.
+C_last = np.eye(3)
+t_last = np.array([[ 0.0, 0.0, -4.0]]).T
+C_init_easy = dcm_from_rpy([np.pi/4, -np.pi/3, -np.pi/6])
+t_init_easy = np.array([[-1.0, 0.8, -6.0]]).T
+# C_init_easy = dcm_from_rpy([np.pi/2, -np.pi/2, np.pi/3])
+# t_init_easy = np.array([[-3.0, 2.0, -8.0]]).T
+C_init_moderate = dcm_from_rpy([np.pi/6, -np.pi/5, np.pi/8])  # Larger rotations
+t_init_moderate = np.array([[-1.0, 0.5, -6.0]]).T
+C_init_hard = dcm_from_rpy([np.pi/3, -np.pi/2, np.pi/4])  # Extreme rotations
+t_init_hard = np.array([[-3.0, 2.0, -8.0]]).T 
+
+
+Twc_last = np.eye(4)
+Twc_last[0:3, :] = np.hstack((C_last, t_last))
+Twc_init = np.eye(4)
+Twc_init[0:3, :] = np.hstack((C_init_hard, t_init_hard))
+
+gain_values = np.linspace(0.001, 1.25, 50)
+convergence_times_known = []
+
+for gain in gain_values:
+  # Run simulation - use known depths
+  convergence_time = ibvs_simulation(Twc_init, Twc_last, pts, K, gain, do_depth=False, do_plot = False)
+  convergence_times_known.append(convergence_time)
+
+
+convergence_times_estimated = []
+for gain in gain_values:
+  # Run simulation - use estimated depths
+  convergence_time = ibvs_simulation(Twc_init, Twc_last, pts, K, gain, do_depth = True, do_plot=False)
+  convergence_times_estimated.append(convergence_time)
+
+plt.plot(gain_values, convergence_times_known, 'b-', label='Known Depths')
+plt.plot(gain_values, convergence_times_estimated, 'r--', label='Estimated Depths')
+plt.xlabel('Gain Value')
+plt.ylabel('Convergence Time (Iterations)')
+plt.title('Convergence Time vs. Gain Value (Hard Initial Camera Pose)')
+plt.legend(loc='upper left')
+plt.grid(True)
+plt.show()
+
+print(convergence_times_known)
+print(convergence_times_estimated)
+optimal_gain_known = gain_values[np.argmin(convergence_times_known)]
+optimal_gain_estimated = gain_values[np.argmin(convergence_times_estimated)]
+print(f'Optimal Gains:\n  Known Depths: {optimal_gain_known}\n  Estimated Depths: {optimal_gain_estimated}')

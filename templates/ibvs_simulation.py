@@ -104,3 +104,4 @@ def ibvs_simulation(Twc_init,
         
         # Increment counter.
         i += 1
+    return i

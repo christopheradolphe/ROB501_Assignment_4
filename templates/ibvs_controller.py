@@ -32,6 +32,7 @@ def ibvs_controller(K, pts_des, pts_obs, zs, gain):
     # Initialize empty Jacobian
     J = np.zeros((0,6))
 
+    # Loop through each image plane point
     for i in range(n):
         # Compute Jacobian for each image plane point
         J_point = ibvs_jacobian(K,pts_obs[:,i],zs[i])
